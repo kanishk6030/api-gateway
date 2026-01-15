@@ -12,6 +12,7 @@ app.use(express.json());
 
 // Routes
 app.use('/profile', profileRoutes);
+
 app.use(errorHandler);
 
 function startServer() {    
