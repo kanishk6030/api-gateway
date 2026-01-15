@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
 dotenv.config();
 
+
+//This section  is beacuse the SUPABASE uses JWKS for managing keys
 const client = jwksClient({
   jwksUri: `https://${process.env.PROJECT_ID}.supabase.co/auth/v1/.well-known/jwks.json`
 });
@@ -21,7 +24,7 @@ function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.error("Missing or invalid Authorization header");
+    logger.error("Missing or malformed Authorization header");
     return res.status(401).json({ message: "Unauthorized - Missing Bearer token" });
   }
 
@@ -35,8 +38,7 @@ function authenticate(req, res, next) {
     },
      (err, decoded) => {
     if (err) {
-      console.error("JWT verify error:", err.message);
-      console.error("JWT verify full error:", err);
+      logger.error("JWT verification failed", { error: err.message });
       return res.status(403).json({ message: "Forbidden - Invalid token", error: err.message });
     }
 
@@ -44,8 +46,7 @@ function authenticate(req, res, next) {
       id: decoded.sub,
       role: decoded.role || "authenticated"
     };
-
-    console.log("Authenticated user:", req.user);
+    logger.info(`User authenticated`);
     next();
   });
 }
